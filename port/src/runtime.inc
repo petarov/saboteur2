@@ -67,6 +67,7 @@ section .text
 
 %define CS_VALUE 0x1000              ; the code segment (PSP) value
 %define CS_LABELS_COUNT 0x2E61       ; cs_labels entries: CS:0000..2E60
+%define VERSION_TEXT 0x7A30          ; DS offset of the menu version string (data.asm)
 
 %ifndef RUNTIME_DEFINES_STATE
 extern seg_ds

@@ -18,6 +18,8 @@ import sys
 DS_FILE_OFFSET = 0x2D60
 TEST_STRING = 0x7B00                # past the game's data (DS:0000..7A29)
 FONT, MASKS, EXPAND = 0x0CB1, 0x1B72, 0x1972
+# The port's '.' glyph (src/data.asm); blank in SAB2.COM.
+DOT_GLYPH = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x18, 0x00])
 POSITION, COLOR, FLAGS = 0x1BA2, 0x1BC4, 0x1BC5
 # Mission briefing strings printed by start_mission (CS:0299..032B).
 GAME_STRINGS = [0x1704, 0x173A, 0x17A9, 0x180B, 0x17CC, 0x17EE, 0x173E, 0x1537]
@@ -28,13 +30,14 @@ def test_string():
     s += bytes(range(0x20, 0x7F))                       # every printable char
     for color in (0x01, 0x02, 0x03, 0x05, 0x0A, 0x17, 0x2C, 0x3F, 0xE6):
         s += bytes([0xFE, color]) + b'SABOTEUR '
-    s += bytes([0xFD, 0x1E, 0x15]) + b'WRAP'            # wraps at column 20h
+    s += bytes([0xFD, 0x1E, 0x15]) + b'WRAP.'           # wraps at column 20h
     return bytes(s + b'\xFF')
 
 
 def main():
     com = open(sys.argv[1], 'rb').read()
     ds = bytearray(com[DS_FILE_OFFSET:]) + bytearray(0x10000 - (len(com) - DS_FILE_OFFSET))
+    ds[FONT + ord('.') * 8:FONT + ord('.') * 8 + 8] = DOT_GLYPH
     text = test_string()
     ds[TEST_STRING:TEST_STRING + len(text)] = text
     ds[POSITION:POSITION + 2] = b'\0\0'

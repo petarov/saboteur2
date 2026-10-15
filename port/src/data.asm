@@ -10,7 +10,11 @@ section .data
 align 16
 global ds_base
 ds_base:
-    incbin "../SAB2.COM", 0x2D60, 0x5800    ; DS:0000..57FF
+    incbin "../SAB2.COM", 0x2D60, 0x0E21    ; DS:0000..0E20
+    ; Game font (DS:0CB1, 8 bytes per character): '.' is blank in the original
+    ; and no game text uses it. The port draws a dot for the menu version.
+    db 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x18, 0x00
+    incbin "../SAB2.COM", 0x2D60 + 0x0E29, 0x5800 - 0x0E29  ; DS:0E29..57FF
     ; Control keys read by read_keyboard (CS:10A4): key, second key, action,
     ; countdown. The original has A/a up, Z/z down, N/n left, M/m right; the
     ; port defaults to the cursor keys, stored as the game's key definition
@@ -20,4 +24,11 @@ ds_base:
     db 0x00, 0x4B, 0x02, 0x00               ; left
     db 0x00, 0x4D, 0x01, 0x00               ; right
     incbin "../SAB2.COM", 0x2D60 + 0x5810, 0x7A2A - 0x5810  ; DS:5810..7A29 (fire: space)
+
+    ; Port addition past the original data: the version, printed by print_text
+    ; at the top left of the menu panel (marker at CS:2742). The game font has
+    ; only 20h-5Ah, so the text is upper case. SAB2_VERSION comes from VER in
+    ; the Makefile.
+    times VERSION_TEXT - ($ - ds_base) db 0
+    db 0xFE, 0x0A, 0xFD, 0x00, 0x00, "VER ", SAB2_VERSION, 0xFF
     times 0x10000 - ($ - ds_base) db 0      ; pad to a full 64 KB segment

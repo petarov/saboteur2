@@ -71,9 +71,10 @@ $(BUILD)/sab2_code.o: $(BUILD)/sab2_code.asm src/runtime.inc
 $(BUILD)/game.o: src/game.asm src/runtime.inc | $(BUILD)
 	$(NASM) $(NFLAGS) $< -o $@
 
-# data.asm incbins ../SAB2.COM relative to this directory.
-$(BUILD)/data.o: src/data.asm src/runtime.inc $(EXE) | $(BUILD)
-	$(NASM) $(NFLAGS) $< -o $@
+# data.asm incbins ../SAB2.COM relative to this directory. It also holds the
+# version shown in the menu; rebuild when VER changes.
+$(BUILD)/data.o: src/data.asm src/runtime.inc $(EXE) Makefile | $(BUILD)
+	$(NASM) $(NFLAGS) -DSAB2_VERSION='"$(VER)"' $< -o $@
 
 $(BUILD)/%.o: src/%.c src/bios.h src/font8x8.h src/speaker.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@

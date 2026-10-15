@@ -42,6 +42,13 @@ MARKERS = {
     # read_keyboard, after the control keys: Esc acts as Ctrl-C (03h), which
     # sets [1BD5h] = 3 and so ends the mission like the other end states.
     0x10CA: ['cmp al, 0x1B', 'jne .not_esc', 'mov al, 0x03', '.not_esc:'],
+    # Menu, after its text is printed: add the port's version (data.asm) at the
+    # top left of the panel. Text position and colour are kept as they were.
+    0x2742: ['push rsi', 'movzx r14d, word [r12 + 0x1BA2]', 'push r14',
+             'movzx r14d, byte [r12 + 0x1BC4]', 'push r14',
+             'mov si, VERSION_TEXT', 'call L_04B7',
+             'pop r14', 'mov [r12 + 0x1BC4], r14b',
+             'pop r14', 'mov [r12 + 0x1BA2], r14w', 'pop rsi'],
     # Tone loop of sound_seq_play: [78BCh] is cleared only by the INT 1Ch
     # handler, so run it here when a tick is due (no sleep; the loop is paced).
     0x2D0B: ['TIMER_POLL timer_poll_run'],
