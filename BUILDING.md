@@ -20,7 +20,7 @@ Linux (native build, x86_64 host):
 
 - make, gcc, nasm, python3, pkg-config and the SDL2 development package. On Debian / Ubuntu / Linux Mint: `sudo apt install make gcc nasm python3 pkg-config libsdl2-dev`.
 
-So far only the macOS build has been tested. The Linux and Windows targets are carried over from the Alley Cat port and have not been run for Saboteur II yet.
+The macOS build has been run. The Linux build and `make check` pass in Docker, and the Windows build cross-compiles, but neither binary has been run on its target system yet.
 
 ## Building and running
 

@@ -136,4 +136,4 @@ An earlier `SAB2.EXE` (44,324 bytes, dated 2008-08-23, SHA-256 `1ff0837b…bad`)
 - `DumpListing.java`: GhidraScript that regenerates the listing, `stats.txt` and `fingerprint.txt` (see BUILDING.md for the command).
 - `stats.txt`: counts of prologues, RET/IRET/CALL, INT and port use, and non-code runs.
 - `fingerprint.txt`: per-procedure size, calls, callers and hardware tags. The tag rules are in its header.
-- `CAT.asm`: the Alley Cat listing. It is kept because `port/tools/asm2nasm.py` still reads it.
+- `CAT.asm`: the Alley Cat listing. Nothing reads it any more.

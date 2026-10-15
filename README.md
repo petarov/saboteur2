@@ -27,11 +27,12 @@ The macOS build is not signed or notarized: allow it under *Privacy & Security* 
 
 ## Controls
 
-*..TODO*
-
+- Use the cursor keys to move and `SPACE` to attack or pick up things
+- `Esc` / `Ctrl-C`: terminates mission and goes back to main menu
+ 
 ### New (not in the original game):
 
-*..TODO*
+- `F10`, `Ctrl-W` and `Ctrl-Q`: quits at any time
 
 ## Building
 
