@@ -1,0 +1,10 @@
+.DS_Store
+*.scr
+*.com
+
+re/*.txt
+re/*.asm
+
+port/build/
+port/third_party/
+

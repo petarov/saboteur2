@@ -1,0 +1,16 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Saboteur II: Avenging Angel",
+  "wikidata": "Q55533",
+  "system": "PC (DOS)",
+  "type": "recomp",
+  "original": { "revision": "1987", "sha1": "0a40dfacd75bd7a65ce53b3f41fe6ef478b5d399" },
+  "project": "Saboteur II (x86-64 port)",
+  "status": "exploring",
+  "targets": ["Windows", "Linux", "macOS"],
+  "toolchain": ["Ghidra", "Asm2nasm"],
+  "approach": "Static translation of the 8088 code to x86-64 NASM, emulated PC hardware, SDL2 front end",
+  "maintainers": [{ "name": "petarov", "link": "https://github.com/petarov" }],
+  "notes": "99% LLM-generated code. Builds need the original SAB2.COM, which is not included.",
+  "tags": ["x86-64", "8088", "CGA", "SDL2", "C64", "ZX Spectrum"]
+}
