@@ -9,6 +9,11 @@ A port of [Saboteur II: Avenging Angel](https://en.wikipedia.org/wiki/Saboteur_I
 > [!IMPORTANT]
 > About 99% of the code is LLM-generated and only roughly reviewed. If you have concerns about AI-generated code, avoid this project.
 
+
+| Main Menu | In-game |
+|---|---|
+| [![Title screen (Menu)](screenshots/scr01.png)](screenshots/scr01.png) | [![In-game screen](screenshots/scr02.png)](screenshots/scr02.png) |
+
 ## Platforms and downloads
 
 | Platform | Latest release | Package to choose |

@@ -1,2 +1,2 @@
-screenshots/title-screen.png filter=lfs diff=lfs merge=lfs -text
-screenshots/title-screen-pcjr.png filter=lfs diff=lfs merge=lfs -text
+screenshots/scr01.png filter=lfs diff=lfs merge=lfs -text
+screenshots/scr02.png filter=lfs diff=lfs merge=lfs -text
