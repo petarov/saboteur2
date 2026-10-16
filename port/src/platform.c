@@ -101,7 +101,33 @@ static void build_palette(uint32_t out[4])
     }
 }
 
-static bool platform_init(void)
+/* Fullscreen uses the desktop resolution (no display mode change); the
+ * logical size and integer scaling letterbox the picture as in a window. The
+ * game has no mouse, so the cursor is hidden while fullscreen. */
+static void set_fullscreen(bool on)
+{
+    if (SDL_SetWindowFullscreen(window, on ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) != 0) {
+        SDL_Log("SDL_SetWindowFullscreen failed: %s", SDL_GetError());
+        return;
+    }
+    SDL_ShowCursor(on ? SDL_DISABLE : SDL_ENABLE);
+}
+
+static void toggle_fullscreen(void)
+{
+    set_fullscreen((SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) == 0);
+}
+
+/* Alt-Enter and F11 toggle fullscreen (the port's keys, like the quit keys). */
+static bool is_fullscreen_key(const SDL_KeyboardEvent *k)
+{
+    if (k->keysym.scancode == SDL_SCANCODE_F11)
+        return true;
+    return (k->keysym.mod & KMOD_ALT) &&
+           (k->keysym.scancode == SDL_SCANCODE_RETURN || k->keysym.scancode == SDL_SCANCODE_KP_ENTER);
+}
+
+static bool platform_init(bool fullscreen)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         SDL_Log("SDL_Init failed: %s", SDL_GetError());
@@ -113,6 +139,8 @@ static bool platform_init(void)
         SDL_Log("SDL_CreateWindow failed: %s", SDL_GetError());
         return false;
     }
+    if (fullscreen)
+        set_fullscreen(true);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
         SDL_Log("SDL_CreateRenderer failed: %s", SDL_GetError());
@@ -250,9 +278,14 @@ static int game_thread(void *unused)
 
 int main(int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
-    if (!platform_init())
+    bool fullscreen = false;
+    for (int i = 1; i < argc; i++) {
+        if (SDL_strcmp(argv[i], "--fullscreen") == 0)
+            fullscreen = true;
+        else
+            SDL_Log("ignoring unknown option %s", argv[i]);
+    }
+    if (!platform_init(fullscreen))
         return 1;
     bios_init();
 
@@ -280,6 +313,9 @@ int main(int argc, char *argv[])
                 SDL_Scancode sc = e.key.keysym.scancode;
                 if (is_quit_key(&e.key)) {
                     quit = true;
+                } else if (is_fullscreen_key(&e.key)) {
+                    if (e.key.repeat == 0)
+                        toggle_fullscreen();
                 } else if (xt_scancode[sc] != 0) {
                     /* Auto-repeat is passed on, like the PC's typematic
                      * repeat: the game moves only while keys keep arriving. */
