@@ -6,7 +6,7 @@
   "type": "recomp",
   "original": { "revision": "1987", "sha1": "0a40dfacd75bd7a65ce53b3f41fe6ef478b5d399" },
   "project": "Saboteur II (x86-64 recomp)",
-  "status": "playable",
+  "status": "released",
   "targets": ["Windows", "Linux", "macOS"],
   "toolchain": ["Ghidra", "Asm2nasm"],
   "approach": "Static translation of the 8088 code to x86-64 NASM, emulated PC hardware, SDL2 front end",
