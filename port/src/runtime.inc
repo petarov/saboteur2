@@ -90,6 +90,7 @@ extern cga_vram
 extern game_trap
 extern cheat_invincible
 extern cheat_pay
+extern cheat_onehit
 
 %define CPU_AX   0
 %define CPU_BX   2

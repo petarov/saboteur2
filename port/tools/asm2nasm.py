@@ -62,6 +62,12 @@ MARKERS = {
     # invincibility cheat (platform.c, Ctrl-I) return at once. All damage
     # enters here; regeneration (CS:2015) calls CS:1F91 directly and still runs.
     0x1F89: ['cmp byte [cheat_invincible], 0', 'jne L_1F90'],
+    # Player hits an enemy (CS:21C8-2206): $20, then [6F98h] counts down the
+    # hits left (5, shared by all enemies); at 0, or on a 1-in-8 chance, the
+    # enemy goes down (state 5/6) for $100. With the one-hit cheat
+    # (platform.c, Ctrl-O) every hit is the last one.
+    0x21D3: ['cmp byte [cheat_onehit], 0', 'je .no_onehit',
+             'mov byte [r12 + 0x6F98], 1', '.no_onehit:'],
     # Menu, after its text is printed: add the port's version (data.asm) at the
     # top left of the panel. Text position and colour are kept as they were.
     0x2742: ['push rsi', 'movzx r14d, word [r12 + 0x1BA2]', 'push r14',

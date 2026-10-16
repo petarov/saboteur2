@@ -33,6 +33,7 @@ uint8_t ivt_seg[SEGMENT_SIZE];
 uint8_t dos_exit;
 volatile uint8_t cheat_invincible;
 volatile uint8_t cheat_pay;
+volatile uint8_t cheat_onehit;
 
 static uint64_t start_ns;
 static volatile uint8_t video_mode = 3;  /* what DOS leaves: 80x25 colour text */

@@ -35,6 +35,7 @@ The macOS build is not signed or notarized: allow it under *Privacy & Security* 
 
 - `F10`, `Ctrl-W` and `Ctrl-Q`: quits at any time
 - `Ctrl-I`: toggles invincibility (cheat): damage no longer drains the energy bar
+- `Ctrl-O`: toggles one-hit kills (cheat): every hit knocks the enemy down
 - `Ctrl-P`: adds $100 to PAY (cheat)
 - `Alt-Enter` / `F11` (macOS: `Cmd-Enter` / `Cmd-F11`): toggles fullscreen. The game starts in fullscreen by default. Use `--window` on the command line to start in a window.
 
