@@ -130,6 +130,21 @@ windows-image:
 windows: windows-image
 	docker run --rm -v "$(abspath ..)":/src -w /src/port $(WINDOWS_IMAGE) make TARGET_OS=Windows BUILD=build/windows all
 
+# SDL2.framework for the macOS archive, built from third_party: only the
+# x86_64 slice (the game is x86_64; arm64 Macs run it under Rosetta 2), re-signed
+# ad hoc as the release is, plus Resources; no Headers. The symlinks are made
+# here, since a copied framework often has them flattened into copies.
+FW_SRC := $(SDL_DIR)/SDL2.framework/Versions/A
+
+pack-framework:
+	mkdir -p $(FW)/Versions/A
+	lipo $(FW_SRC)/SDL2 -thin x86_64 -output $(FW)/Versions/A/SDL2
+	cp -R $(FW_SRC)/Resources $(FW)/Versions/A/
+	ln -s A $(FW)/Versions/Current
+	ln -s Versions/Current/SDL2 $(FW)/SDL2
+	ln -s Versions/Current/Resources $(FW)/Resources
+	codesign --force --sign - $(FW)
+
 # Release archives in build/: the macOS build (always) plus the Linux and
 # Windows builds if they exist (make linux / make windows first). Each holds
 # one top-level directory named like the archive. Run on macOS.
@@ -140,7 +155,7 @@ pack: $(TARGET)
 	rm -rf $(PACK_DIR)
 	mkdir -p $(PACK_DIR)/$(PACK_NAME)-macos-x86_64
 	cp $(TARGET) $(PACK_DIR)/$(PACK_NAME)-macos-x86_64/
-	cp -R $(SDL_DIR)/SDL2.framework $(PACK_DIR)/$(PACK_NAME)-macos-x86_64/
+	$(MAKE) pack-framework FW=$(PACK_DIR)/$(PACK_NAME)-macos-x86_64/SDL2.framework
 	rm -f $(BUILD)/$(PACK_NAME)-macos-x86_64.zip
 	cd $(PACK_DIR) && zip -qry ../$(PACK_NAME)-macos-x86_64.zip $(PACK_NAME)-macos-x86_64
 	@echo "pack: $(BUILD)/$(PACK_NAME)-macos-x86_64.zip"
@@ -169,4 +184,4 @@ run: $(TARGET)
 clean:
 	@-rm -rf $(BUILD)/
 
-.PHONY: all run check clean linux-image linux linux-check windows-image windows pack
+.PHONY: all run check clean linux-image linux linux-check windows-image windows pack pack-framework
