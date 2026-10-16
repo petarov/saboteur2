@@ -1,6 +1,8 @@
 # Saboteur II (x86-64 recomp)
 
-[![version](https://img.shields.io/badge/release-1.0-orange)](https://github.com/petarov/saboteur2.exe/releases/latest)
+Work in progress ...
+
+[![version](https://img.shields.io/badge/release-WIP-orange)](https://github.com/petarov/saboteur2.exe/releases/latest)
 [![platforms-windows-mac-linux](https://img.shields.io/badge/platforms-windows,%20mac,%20linux-blue)](https://github.com/petarov/saboteur2.exe/releases/latest)
 [![license-unlicense](https://img.shields.io/badge/license-Unlicense-green)](https://github.com/petarov/saboteur2.exe/blob/main/LICENSE)
 
@@ -17,10 +19,10 @@ A recompilation of [Saboteur II: Avenging Angel](https://en.wikipedia.org/wiki/S
 
 | Platform | Latest release | Package to choose |
 |---|---|---|
-| Windows x64 | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `windows-x86_64` ZIP |
-| Linux x64 | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `linux-x86_64` archive |
-| macOS Intel (x64) | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `macos-x86_64` ZIP |
-| macOS Apple Silicon (ARM64) | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `macos-x86_64` ZIP — runs under Rosetta 2 |
+| Windows x64 | [WIP](https://github.com/petarov/saboteur2.exe/releases/latest) | `windows-x86_64` ZIP |
+| Linux x64 | [WIP](https://github.com/petarov/saboteur2.exe/releases/latest) | `linux-x86_64` archive |
+| macOS Intel (x64) | [WIP](https://github.com/petarov/saboteur2.exe/releases/latest) | `macos-x86_64` ZIP |
+| macOS Apple Silicon (ARM64) | [WIP](https://github.com/petarov/saboteur2.exe/releases/latest) | `macos-x86_64` ZIP — runs under Rosetta 2 |
 
 The macOS build is not signed or notarized: allow it under *Privacy & Security* or run `xattr -dr com.apple.quarantine <folder>`.
 
