@@ -42,6 +42,11 @@ MARKERS = {
     # read_keyboard, after the control keys: Esc acts as Ctrl-C (03h), which
     # sets [1BD5h] = 3 and so ends the mission like the other end states.
     0x10CA: ['cmp al, 0x1B', 'jne .not_esc', 'mov al, 0x03', '.not_esc:'],
+    # Damage (CS:1F89): CS:1F91 takes CX units off the energy bar at
+    # [1BC0h]/[1BDBh]; an empty bar sets [1BD5h] = 1 (death). With the
+    # invincibility cheat (platform.c, Ctrl-I) return at once. All damage
+    # enters here; regeneration (CS:2015) calls CS:1F91 directly and still runs.
+    0x1F89: ['cmp byte [cheat_invincible], 0', 'jne L_1F90'],
     # Menu, after its text is printed: add the port's version (data.asm) at the
     # top left of the panel. Text position and colour are kept as they were.
     0x2742: ['push rsi', 'movzx r14d, word [r12 + 0x1BA2]', 'push r14',

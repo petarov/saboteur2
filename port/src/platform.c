@@ -247,6 +247,44 @@ static void render_graphics(void)
     }
 }
 
+/* Port message shown centred over the game screen (e.g. on toggling a
+ * cheat), drawn into pixels only, so the game's video memory is untouched. */
+#define OSD_MS 3000
+static const char *osd_text;
+static Uint64 osd_until;
+
+static void osd_show(const char *text)
+{
+    osd_text = text;
+    osd_until = SDL_GetTicks64() + OSD_MS;
+}
+
+/* White text on a black box with a 4-pixel margin. */
+static void render_osd(void)
+{
+    if (!osd_text)
+        return;
+    if (SDL_GetTicks64() >= osd_until) {
+        osd_text = NULL;
+        return;
+    }
+    int len = (int)SDL_strlen(osd_text);
+    int w = len * 8 + 8, h = 16;
+    int x0 = (CGA_WIDTH - w) / 2, y0 = (CGA_HEIGHT - h) / 2;
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+            pixels[(y0 + y) * CGA_WIDTH + x0 + x] = cga_rgbi[0];
+    for (int i = 0; i < len; i++) {
+        const uint8_t *g = font8x8_glyph((uint8_t)osd_text[i]);
+        for (int r = 0; r < 8; r++) {
+            uint32_t *out = pixels + (y0 + 4 + r) * CGA_WIDTH + x0 + 4 + i * 8;
+            for (int c = 0; c < 8; c++)
+                if (g[r] & (0x80 >> c))
+                    out[c] = cga_rgbi[15];
+        }
+    }
+}
+
 /* Converts cga_vram to RGB and shows it. A frame identical to the last one
  * shown is skipped unless force is set (window events), so a static screen
  * costs almost nothing, e.g. over remote desktop. */
@@ -258,6 +296,7 @@ static void present(bool force)
         render_text();
     else
         render_graphics();
+    render_osd();
 
     if (!force && SDL_memcmp(shown, pixels, sizeof shown) == 0)
         return;
@@ -278,6 +317,13 @@ static bool is_quit_key(const SDL_KeyboardEvent *k)
     if (k->keysym.scancode == SDL_SCANCODE_F10)
         return true;
     return (k->keysym.mod & KMOD_CTRL) && (k->keysym.sym == SDLK_w || k->keysym.sym == SDLK_q);
+}
+
+/* Ctrl-I toggles invincibility (the port's cheat). The game never sees the
+ * key; it would read it as Tab (09h). */
+static bool is_cheat_key(const SDL_KeyboardEvent *k)
+{
+    return (k->keysym.mod & KMOD_CTRL) && k->keysym.sym == SDLK_i;
 }
 
 /* The ASCII byte the BIOS would return with the key: letters (Shift/Caps Lock
@@ -354,6 +400,11 @@ int main(int argc, char *argv[])
                 } else if (is_fullscreen_key(&e.key)) {
                     if (e.key.repeat == 0)
                         toggle_fullscreen();
+                } else if (is_cheat_key(&e.key)) {
+                    if (e.key.repeat == 0) {
+                        cheat_invincible = !cheat_invincible;
+                        osd_show(cheat_invincible ? "inv: on" : "inv: off");
+                    }
                 } else if (xt_scancode[sc] != 0) {
                     /* Auto-repeat is passed on, like the PC's typematic
                      * repeat: the game moves only while keys keep arriving. */

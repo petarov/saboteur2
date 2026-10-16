@@ -43,6 +43,10 @@ void kbd_push(uint16_t key);
 /* Set by INT 21h/4Ch; the DOS macro (runtime.inc) then leaves game_main. */
 extern uint8_t dos_exit;
 
+/* Invincibility cheat, toggled by the main thread (Ctrl-I). While set, the
+ * damage (CS:1F89, see asm2nasm.py) takes nothing off the energy bar. */
+extern volatile uint8_t cheat_invincible;
+
 /* Called from runtime.inc / game.asm. */
 void bios_int10(void);
 uint32_t bios_int16(void);   /* returns 1 when ZF is to be set */
