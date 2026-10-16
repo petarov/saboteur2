@@ -101,6 +101,40 @@ static void build_palette(uint32_t out[4])
     }
 }
 
+/* Port settings: one file per setting in the per-user SDL preferences folder
+ * (next to SAB_II.SCR), holding '1' or '0'. */
+static SDL_RWops *open_setting(const char *name, const char *mode)
+{
+    char *dir = SDL_GetPrefPath("petarov", "saboteur2");
+    if (dir == NULL)
+        return NULL;
+    char path[1024];
+    SDL_snprintf(path, sizeof path, "%s%s", dir, name);
+    SDL_free(dir);
+    return SDL_RWFromFile(path, mode);
+}
+
+static bool load_setting(const char *name, bool default_value)
+{
+    SDL_RWops *f = open_setting(name, "rb");
+    char c = default_value ? '1' : '0';
+    if (f != NULL) {
+        SDL_RWread(f, &c, 1, 1);
+        SDL_RWclose(f);
+    }
+    return c == '1';
+}
+
+static void save_setting(const char *name, bool value)
+{
+    SDL_RWops *f = open_setting(name, "wb");
+    if (f != NULL) {
+        char c = value ? '1' : '0';
+        SDL_RWwrite(f, &c, 1, 1);
+        SDL_RWclose(f);
+    }
+}
+
 /* Fullscreen uses the desktop resolution (no display mode change); the
  * logical size and integer scaling letterbox the picture as in a window. The
  * game has no mouse, so the cursor is hidden while fullscreen. */
@@ -113,9 +147,11 @@ static void set_fullscreen(bool on)
     SDL_ShowCursor(on ? SDL_DISABLE : SDL_ENABLE);
 }
 
+/* The toggled state is kept for the next start. */
 static void toggle_fullscreen(void)
 {
     set_fullscreen((SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) == 0);
+    save_setting("fullscreen", (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
 }
 
 /* Alt-Enter and F11 toggle fullscreen (the port's keys, like the quit keys). */
@@ -278,10 +314,12 @@ static int game_thread(void *unused)
 
 int main(int argc, char *argv[])
 {
-    bool fullscreen = false;
+    /* Fullscreen by default, or as last toggled; --window starts in a window
+     * for this run only. SDL_GetPrefPath needs no SDL_Init. */
+    bool fullscreen = load_setting("fullscreen", true);
     for (int i = 1; i < argc; i++) {
-        if (SDL_strcmp(argv[i], "--fullscreen") == 0)
-            fullscreen = true;
+        if (SDL_strcmp(argv[i], "--window") == 0)
+            fullscreen = false;
         else
             SDL_Log("ignoring unknown option %s", argv[i]);
     }
