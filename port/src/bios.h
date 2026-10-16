@@ -46,6 +46,9 @@ extern uint8_t dos_exit;
 /* Invincibility cheat, toggled by the main thread (Ctrl-I). While set, the
  * damage (CS:1F89, see asm2nasm.py) takes nothing off the energy bar. */
 extern volatile uint8_t cheat_invincible;
+/* Pay cheat presses (Ctrl-P) not yet applied; the game loop adds $100 for
+ * each (see asm2nasm.py, CS:049A). */
+extern volatile uint8_t cheat_pay;
 
 /* Called from runtime.inc / game.asm. */
 void bios_int10(void);

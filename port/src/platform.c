@@ -249,14 +249,13 @@ static void render_graphics(void)
 
 /* Port message shown centred over the game screen (e.g. on toggling a
  * cheat), drawn into pixels only, so the game's video memory is untouched. */
-#define OSD_MS 3000
 static const char *osd_text;
 static Uint64 osd_until;
 
-static void osd_show(const char *text)
+static void osd_show(const char *text, Uint32 ms)
 {
     osd_text = text;
-    osd_until = SDL_GetTicks64() + OSD_MS;
+    osd_until = SDL_GetTicks64() + ms;
 }
 
 /* White text on a black box with a 4-pixel margin. */
@@ -319,11 +318,11 @@ static bool is_quit_key(const SDL_KeyboardEvent *k)
     return (k->keysym.mod & KMOD_CTRL) && (k->keysym.sym == SDLK_w || k->keysym.sym == SDLK_q);
 }
 
-/* Ctrl-I toggles invincibility (the port's cheat). The game never sees the
- * key; it would read it as Tab (09h). */
-static bool is_cheat_key(const SDL_KeyboardEvent *k)
+/* The port's cheats: Ctrl-I toggles invincibility, Ctrl-P adds $100 to PAY.
+ * The game never sees these keys; it would read them as Tab (09h) and 10h. */
+static bool is_cheat_key(const SDL_KeyboardEvent *k, SDL_Keycode sym)
 {
-    return (k->keysym.mod & KMOD_CTRL) && k->keysym.sym == SDLK_i;
+    return (k->keysym.mod & KMOD_CTRL) && k->keysym.sym == sym;
 }
 
 /* The ASCII byte the BIOS would return with the key: letters (Shift/Caps Lock
@@ -400,10 +399,15 @@ int main(int argc, char *argv[])
                 } else if (is_fullscreen_key(&e.key)) {
                     if (e.key.repeat == 0)
                         toggle_fullscreen();
-                } else if (is_cheat_key(&e.key)) {
+                } else if (is_cheat_key(&e.key, SDLK_i)) {
                     if (e.key.repeat == 0) {
                         cheat_invincible = !cheat_invincible;
-                        osd_show(cheat_invincible ? "inv: on" : "inv: off");
+                        osd_show(cheat_invincible ? "inv: on" : "inv: off", 3000);
+                    }
+                } else if (is_cheat_key(&e.key, SDLK_p)) {
+                    if (e.key.repeat == 0 && cheat_pay < 25) {
+                        cheat_pay++;
+                        osd_show("pay: $100", 1000);
                     }
                 } else if (xt_scancode[sc] != 0) {
                     /* Auto-repeat is passed on, like the PC's typematic

@@ -89,6 +89,7 @@ extern ds_base
 extern cga_vram
 extern game_trap
 extern cheat_invincible
+extern cheat_pay
 
 %define CPU_AX   0
 %define CPU_BX   2
