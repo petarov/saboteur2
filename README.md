@@ -6,6 +6,8 @@
 
 A recompilation of [Saboteur II: Avenging Angel](https://en.wikipedia.org/wiki/Saboteur_II:_Avenging_Angel) (by Clive Townsend, Durell Software, 1987) from its original DOS executable to `x86_64` platforms.
 
+If you like this game, make sure to go and check Clive Townsend's [Saboteur 2 remake](https://www.clivetownsend.com/downloads2.php).
+
 > [!IMPORTANT]
 > About 99% of the code is LLM-generated and only roughly reviewed. If you have concerns about AI-generated code, avoid this project.
 
