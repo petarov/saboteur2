@@ -350,6 +350,82 @@ static uint8_t key_ascii(const SDL_Keysym *k)
     }
 }
 
+/* Control keys read by read_keyboard (CS:10A4): 5 entries of key, second key,
+ * action, countdown at DS:5800 (up, down, left, right, fire), as the key
+ * definition menu (CS:27D1) left them. */
+#define CONTROL_KEYS 0x5800
+#define CONTROL_KEY_COUNT 5
+
+extern uint8_t ds_base[SEGMENT_SIZE];   /* data.asm */
+
+/* The control key (0-4) the BIOS key word is, matched as read_keyboard
+ * matches it: the ASCII byte against the first key, or, for a letter, the
+ * second; an extended key (first key 00h) by its scan code. -1 if none. */
+static int control_key(uint16_t key)
+{
+    uint8_t ascii = key & 0xFF, scan = key >> 8;
+    for (int i = 0; i < CONTROL_KEY_COUNT; i++) {
+        const uint8_t *e = &ds_base[CONTROL_KEYS + 4 * i];
+        if (ascii == e[0] ? ascii != 0 || scan == e[1] : e[0] != 0 && ascii == e[1])
+            return i;
+    }
+    return -1;
+}
+
+/* Held control keys (Ctrl-K toggles ctl_hold, on by default). read_keyboard
+ * sees only key presses and treats a control key as released ~3 game frames
+ * after the last one arrived, so holding a key relies on typematic repeat,
+ * which repeats only the last key pressed (hold Right, jump with Up, release
+ * Up: Right no longer repeats), and a tap lasts several frames, so quick
+ * fire presses merge into one. With ctl_hold on, a control key's first press
+ * goes to the game as before, its OS repeats are dropped, and ctl_down tells
+ * the game which keys are down: read_keyboard keeps those held and releases
+ * the others at once (asm2nasm.py, CS:112C). */
+#define HELD_MAX 8
+
+static struct {
+    SDL_Scancode sc;
+    int index;
+} held[HELD_MAX];
+static int held_count;
+
+static void update_ctl_down(void)
+{
+    uint8_t down = 0;
+    for (int i = 0; i < held_count; i++)
+        down |= (uint8_t)(1 << held[i].index);
+    ctl_down = down;
+}
+
+static void hold_press(SDL_Scancode sc, int index)
+{
+    for (int i = 0; i < held_count; i++)
+        if (held[i].sc == sc)
+            return;
+    if (held_count == HELD_MAX)
+        return;
+    held[held_count].sc = sc;
+    held[held_count].index = index;
+    held_count++;
+    update_ctl_down();
+}
+
+static void hold_release(SDL_Scancode sc)
+{
+    for (int i = 0; i < held_count; i++)
+        if (held[i].sc == sc) {
+            held[i] = held[--held_count];
+            update_ctl_down();
+            return;
+        }
+}
+
+static void hold_clear(void)
+{
+    held_count = 0;
+    update_ctl_down();
+}
+
 static int game_thread(void *unused)
 {
     (void)unused;
@@ -393,6 +469,9 @@ int main(int argc, char *argv[])
                 quit = true;
             } else if (e.type == SDL_WINDOWEVENT || e.type == SDL_RENDER_TARGETS_RESET) {
                 force = true;
+                /* Key-ups while unfocused never arrive. */
+                if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+                    hold_clear();
             } else if (e.type == SDL_KEYDOWN) {
                 SDL_Scancode sc = e.key.keysym.scancode;
                 if (is_quit_key(&e.key)) {
@@ -415,11 +494,27 @@ int main(int argc, char *argv[])
                         cheat_pay++;
                         osd_show("pay: $100", 1000);
                     }
+                } else if (is_cheat_key(&e.key, SDLK_k)) {
+                    if (e.key.repeat == 0) {
+                        ctl_hold = !ctl_hold;
+                        hold_clear();
+                        osd_show(ctl_hold ? "hold: on" : "hold: off", 3000);
+                    }
                 } else if (xt_scancode[sc] != 0) {
                     /* Auto-repeat is passed on, like the PC's typematic
-                     * repeat: the game moves only while keys keep arriving. */
-                    kbd_push((uint16_t)(xt_scancode[sc] << 8 | key_ascii(&e.key.keysym)));
+                     * repeat: the game moves only while keys keep arriving.
+                     * With ctl_hold on, control keys are held by ctl_down. */
+                    uint16_t key = (uint16_t)(xt_scancode[sc] << 8 | key_ascii(&e.key.keysym));
+                    int index = ctl_hold ? control_key(key) : -1;
+                    if (index < 0)
+                        kbd_push(key);
+                    else if (e.key.repeat == 0) {
+                        kbd_push(key);      /* before ctl_down: see CS:112C */
+                        hold_press(sc, index);
+                    }
                 }
+            } else if (e.type == SDL_KEYUP) {
+                hold_release(e.key.keysym.scancode);
             }
         }
         present(force);

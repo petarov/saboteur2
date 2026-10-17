@@ -72,7 +72,7 @@ def main():
                 sheet[r * HEIGHT + y][x0:x0 + WIDTH] = rows[y]
             done += 1
     write_png(out, sheet)
-    print('world2png: %d rooms, %s' % (done, out))
+    print(f"world2png: {done} rooms, {out}".format(done, out))
 
 
 if __name__ == '__main__':

@@ -51,6 +51,11 @@ extern volatile uint8_t cheat_invincible;
 extern volatile uint8_t cheat_pay;
 /* One-hit cheat (Ctrl-O): every hit downs the enemy (CS:21D3). */
 extern volatile uint8_t cheat_onehit;
+/* Held control keys (Ctrl-K, platform.c): while ctl_hold is set,
+ * read_keyboard keeps the control keys whose bit (1 << entry at DS:5800) is
+ * set in ctl_down held and releases the others (CS:112C). */
+extern volatile uint8_t ctl_hold;
+extern volatile uint8_t ctl_down;
 
 /* Called from runtime.inc / game.asm. */
 void bios_int10(void);

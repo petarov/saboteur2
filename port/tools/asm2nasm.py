@@ -57,6 +57,26 @@ MARKERS = {
     # read_keyboard, after the control keys: Esc acts as Ctrl-C (03h), which
     # sets [1BD5h] = 3 and so ends the mission like the other end states.
     0x10CA: ['cmp al, 0x1B', 'jne .not_esc', 'mov al, 0x03', '.not_esc:'],
+    # read_keyboard, after the buffered keys, before the countdowns: the held
+    # control keys (platform.c, Ctrl-K). Each entry at DS:5800 is key, second
+    # key, action|flags (80h held, 40h one more countdown before release),
+    # countdown. A held entry whose key is down (ctl_down) gets countdown 4,
+    # so it never expires; one whose key is up is released at once, as
+    # CS:1152 does, unless its first press came this frame (countdown 2 with
+    # 40h, or 6 for down), so even the shortest tap is seen for a frame.
+    0x112C: ['cmp byte [ctl_hold], 0', 'je .no_hold',
+             'push rax', 'push rbx', 'push rcx', 'push rdx',
+             'mov al, [ctl_down]', 'lea rbx, [r12 + 0x5800]', 'mov ecx, 5',
+             '.hold_next:', 'mov dl, [rbx + 2]', 'test dl, 0x80', 'jz .hold_skip',
+             'test al, 1', 'jz .hold_up',
+             'cmp byte [rbx + 3], 4', 'jae .hold_skip', 'mov byte [rbx + 3], 4', 'jmp .hold_skip',
+             '.hold_up:', 'cmp byte [rbx + 3], 6', 'je .hold_skip',
+             'cmp byte [rbx + 3], 2', 'jne .hold_release', 'test dl, 0x40', 'jnz .hold_skip',
+             '.hold_release:', 'and byte [rbx + 2], 0x3F', 'mov byte [rbx + 3], 0',
+             'not dl', 'and [r12 + 0x5B35], dl',
+             '.hold_skip:', 'shr al, 1', 'add rbx, 4', 'dec ecx', 'jnz .hold_next',
+             'pop rdx', 'pop rcx', 'pop rbx', 'pop rax',
+             '.no_hold:'],
     # Damage (CS:1F89): CS:1F91 takes CX units off the energy bar at
     # [1BC0h]/[1BDBh]; an empty bar sets [1BD5h] = 1 (death). With the
     # invincibility cheat (platform.c, Ctrl-I) return at once. All damage
