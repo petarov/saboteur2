@@ -91,6 +91,7 @@ extern game_trap
 extern cheat_invincible
 extern cheat_pay
 extern cheat_onehit
+extern cheat_time
 extern ctl_hold
 extern ctl_down
 

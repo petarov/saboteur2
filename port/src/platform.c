@@ -319,8 +319,8 @@ static bool is_quit_key(const SDL_KeyboardEvent *k)
 }
 
 /* The port's cheats: Ctrl-I toggles invincibility, Ctrl-O one-hit kills,
- * Ctrl-P adds $100 to PAY. The game never sees these keys; it would read
- * them as 09h (Tab), 0Fh and 10h. */
+ * Ctrl-P adds $100 to PAY, Ctrl-J 100 to the timer. The game never sees
+ * these keys; it would read them as 09h (Tab), 0Fh, 10h and 0Ah. */
 static bool is_cheat_key(const SDL_KeyboardEvent *k, SDL_Keycode sym)
 {
     return (k->keysym.mod & KMOD_CTRL) && k->keysym.sym == sym;
@@ -493,6 +493,11 @@ int main(int argc, char *argv[])
                     if (e.key.repeat == 0 && cheat_pay < 25) {
                         cheat_pay++;
                         osd_show("pay: $100", 1000);
+                    }
+                } else if (is_cheat_key(&e.key, SDLK_j)) {
+                    if (e.key.repeat == 0 && cheat_time < 10) {
+                        cheat_time++;
+                        osd_show("time: +100", 1000);
                     }
                 } else if (is_cheat_key(&e.key, SDLK_k)) {
                     if (e.key.repeat == 0) {

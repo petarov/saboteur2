@@ -39,9 +39,9 @@ MARKERS = {
     # tick. A host CPU would wrap the 16-bit count, so take the 4.77 MHz
     # result (below 600h: add 8 to [79A9h]), which matches CPU_PACE_NS.
     0x0270: ['jmp L_0286'],
-    # start_mission, before PAY is reset: drop pay cheat presses made outside
-    # a mission.
-    0x039D: ['mov byte [cheat_pay], 0'],
+    # start_mission, before PAY is reset: drop pay and time cheat presses
+    # made outside a mission.
+    0x039D: ['mov byte [cheat_pay], 0', 'mov byte [cheat_time], 0'],
     # game_loop head: apply the pay cheat (platform.c, Ctrl-P). CS:1F6B adds
     # CX to PAY (6 digits at DS:195E, shown with a fixed trailing 0, so one
     # unit is $10) and reprints it. Registers, ES and print_text's position/colour are kept.
@@ -54,6 +54,28 @@ MARKERS = {
              'pop r14', 'mov [r12 + 0x1BA2], r14w', 'POP_SEG es',
              'pop rbp', 'pop rdi', 'pop rsi', 'pop rdx', 'pop rcx', 'pop rbx', 'pop rax',
              '.no_pay:'],
+    # game_loop, before read_keyboard: apply the time cheat (platform.c,
+    # Ctrl-J). The timer is 3 ASCII digits at DS:1BE6 (counted down by
+    # CS:0FA0), printed by the text at DS:1BE1. Add 100 per press, at most
+    # 999, and reprint it. Registers, ES and print_text's position/colour are
+    # kept.
+    0x049D: ['cmp byte [cheat_time], 0', 'je .no_time',
+             'push rax', 'push rbx', 'push rcx', 'push rdx', 'push rsi', 'push rdi', 'push rbp',
+             'PUSH_SEG es', 'movzx r14d, word [r12 + 0x1BA2]', 'push r14',
+             'movzx r14d, byte [r12 + 0x1BC4]', 'push r14',
+             'movzx eax, byte [r12 + 0x1BE6]', 'sub eax, 0x30', 'imul eax, eax, 10',
+             'movzx ecx, byte [r12 + 0x1BE7]', 'lea eax, [rax + rcx - 0x30]', 'imul eax, eax, 10',
+             'movzx ecx, byte [r12 + 0x1BE8]', 'lea eax, [rax + rcx - 0x30]',
+             'xor ecx, ecx', 'xchg cl, [cheat_time]', 'imul ecx, ecx, 100', 'add eax, ecx',
+             'mov ecx, 999', 'cmp eax, ecx', 'cmova eax, ecx',
+             'mov ecx, 10', 'xor edx, edx', 'div ecx', 'add dl, 0x30', 'mov [r12 + 0x1BE8], dl',
+             'xor edx, edx', 'div ecx', 'add dl, 0x30', 'mov [r12 + 0x1BE7], dl',
+             'add al, 0x30', 'mov [r12 + 0x1BE6], al',
+             'mov si, 0x1BE1', 'call L_04B7',
+             'pop r14', 'mov [r12 + 0x1BC4], r14b',
+             'pop r14', 'mov [r12 + 0x1BA2], r14w', 'POP_SEG es',
+             'pop rbp', 'pop rdi', 'pop rsi', 'pop rdx', 'pop rcx', 'pop rbx', 'pop rax',
+             '.no_time:'],
     # read_keyboard, after the control keys: Esc acts as Ctrl-C (03h), which
     # sets [1BD5h] = 3 and so ends the mission like the other end states.
     0x10CA: ['cmp al, 0x1B', 'jne .not_esc', 'mov al, 0x03', '.not_esc:'],

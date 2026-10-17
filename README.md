@@ -39,6 +39,7 @@ The macOS build is not signed or notarized: allow it under *Privacy & Security* 
 - `Ctrl-I`: (cheat) toggles invincibility: damage no longer drains the energy bar
 - `Ctrl-O`: (cheat) toggles one-hit kills: every hit knocks the enemy down
 - `Ctrl-P`: (cheat) adds $100 to PAY
+- `Ctrl-J`: (cheat) adds 100 to the timer, up to 999
 - `Ctrl-K`: toggles responsive controls (on by default): the cursor keys and `SPACE` act while held and stop on release, and every `SPACE` press is a new attack. Off restores the original (classic) feel.
 - `Alt-Enter` / `F11` (macOS: `Cmd-Enter` / `Cmd-F11`): toggles fullscreen. The game starts in fullscreen by default. Use `--window` on the command line to start in a window.
 

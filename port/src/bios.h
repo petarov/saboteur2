@@ -51,6 +51,9 @@ extern volatile uint8_t cheat_invincible;
 extern volatile uint8_t cheat_pay;
 /* One-hit cheat (Ctrl-O): every hit downs the enemy (CS:21D3). */
 extern volatile uint8_t cheat_onehit;
+/* Time cheat presses (Ctrl-J) not yet applied; the game loop adds 100 to the
+ * timer for each, up to 999 (see asm2nasm.py, CS:049D). */
+extern volatile uint8_t cheat_time;
 /* Held control keys (Ctrl-K, platform.c): while ctl_hold is set,
  * read_keyboard keeps the control keys whose bit (1 << entry at DS:5800) is
  * set in ctl_down held and releases the others (CS:112C). */

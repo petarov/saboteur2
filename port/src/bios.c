@@ -34,6 +34,7 @@ uint8_t dos_exit;
 volatile uint8_t cheat_invincible;
 volatile uint8_t cheat_pay;
 volatile uint8_t cheat_onehit;
+volatile uint8_t cheat_time;
 volatile uint8_t ctl_hold = 1;
 volatile uint8_t ctl_down;
 
