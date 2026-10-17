@@ -13,6 +13,8 @@ A recompilation of [Saboteur II: Avenging Angel](https://en.wikipedia.org/wiki/S
 |---|---|
 | [![Title screen (Menu)](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr01.png)](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr01.png) | [![In-game screen](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr02.png)](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr02.png) |
 
+View a pre-rendered PNG map of the [whole game world](screenshots/world.png).
+
 ## Platforms and downloads
 
 | Platform | Latest release | Package to choose |

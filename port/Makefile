@@ -94,6 +94,33 @@ $(BUILD)/check_text.o: tests/check_text.asm src/runtime.inc | $(BUILD)
 $(CHECK): $(BUILD)/check_main.o $(BUILD)/check_text.o $(GAME_OBJS)
 	$(CC) $^ $(LDFLAGS) -o $@
 
+# World map: runs the generated room_setup headless for every map cell
+# (32x32 grid; row 0 is only the start screen) and stitches the rooms into
+# build/world.png, 8192x4608. Room dumps go to build/rooms/.
+RENDER := $(BUILD)/render_room
+
+$(BUILD)/render_room.o: tools/render_room.c src/bios.h | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/render_room_asm.o: tools/render_room.asm src/runtime.inc | $(BUILD)
+	$(NASM) $(NFLAGS) $< -o $@
+
+$(RENDER): $(BUILD)/render_room.o $(BUILD)/render_room_asm.o $(GAME_OBJS)
+	$(CC) $^ $(LDFLAGS) -o $@
+
+world: $(RENDER)
+	rm -rf $(BUILD)/rooms && mkdir -p $(BUILD)/rooms
+	@fail=0; r=0; while [ $$r -lt 32 ]; do \
+		c=0; while [ $$c -lt 32 ]; do \
+			out=$$(printf '$(BUILD)/rooms/r%02X_c%02X.bin' $$r $$c); \
+			./$(RENDER) $$r $$c $$out 2>/dev/null; rc=$$?; \
+			if [ $$rc -ne 0 ] && [ $$rc -ne 3 ]; then rm -f $$out; fail=$$((fail + 1)); \
+				echo "world: row $$r col $$c not rendered (exit $$rc)"; fi; \
+			c=$$((c + 1)); done; \
+		r=$$((r + 1)); done; \
+	echo "world: $$fail rooms failed"
+	$(PYTHON) tools/world2png.py $(BUILD)/rooms $(BUILD)/world.png
+
 check: $(CHECK)
 	$(PYTHON) tools/ref_text.py $(EXE) $(BUILD)/check_input.bin $(BUILD)/vram_ref.bin
 	./$(CHECK) $(BUILD)/check_input.bin $(BUILD)/vram_game.bin
@@ -184,4 +211,4 @@ run: $(TARGET)
 clean:
 	@-rm -rf $(BUILD)/
 
-.PHONY: all run check clean linux-image linux linux-check windows-image windows pack pack-framework
+.PHONY: all run check clean linux-image linux linux-check windows-image windows pack pack-framework world
