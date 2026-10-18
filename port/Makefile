@@ -11,7 +11,7 @@ LISTING  := ../re/SAB2.asm
 EXE      := ../SAB2.COM
 NASM     := nasm
 PYTHON   := python3 -I
-VER      := 1.0
+VER      := 1.1
 
 # Windows is cross-compiled with mingw-w64 (make windows, in Docker).
 TARGET_OS ?= $(shell uname -s)
