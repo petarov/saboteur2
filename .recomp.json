@@ -5,7 +5,7 @@
   "system": "PC (DOS)",
   "type": "recomp",
   "project": "Saboteur II (x86-64 recomp)",
-  "status": "released",
+  "status": "complete",
   "targets": ["Windows", "Linux", "macOS", "Browser"],
   "toolchain": ["Ghidra", "asm2nasm", "asm2c", "Emscripten"],
   "approach": "Static translation of the 8088 code to x86-64 NASM (desktop) and C/WebAssembly (browser), emulated PC hardware, SDL2 front end",
