@@ -1,3 +1,4 @@
 screenshots/scr01.png filter=lfs diff=lfs merge=lfs -text
 screenshots/scr02.png filter=lfs diff=lfs merge=lfs -text
 screenshots/world.png filter=lfs diff=lfs merge=lfs -text
+dist-wasm/index.wasm filter=lfs diff=lfs merge=lfs -text

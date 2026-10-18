@@ -332,9 +332,10 @@ def translate(mnem, args, sp_slots):
     return setup + [text]
 
 
-def main():
-    src, out = sys.argv[1], sys.argv[2]
-    rows = []           # (cs, raw bytes, mnemonic, operands) in listing order
+def parse_listing(src):
+    """The listing's instructions as (cs, raw bytes, mnemonic, operands) in
+    listing order, and the procedure names by CS offset. Shared with asm2c.py."""
+    rows = []
     proc_names = {}
     for line in open(src, encoding='ascii'):
         m = PROC_RE.match(line)
@@ -344,6 +345,12 @@ def main():
         m = INSN_RE.match(line.rstrip('\n'))
         if m and not m.group(3) == 'db':
             rows.append((int(m.group(1), 16), m.group(2), m.group(3), m.group(4)))
+    return rows, proc_names
+
+
+def main():
+    src, out = sys.argv[1], sys.argv[2]
+    rows, proc_names = parse_listing(src)
 
     referenced = set()
     sp_slots = set()

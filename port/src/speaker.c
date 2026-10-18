@@ -16,10 +16,18 @@
 
 #define PIT_HZ 1193182.0
 #define SAMPLE_RATE 48000
-#define BUFFER_FRAMES 512
 #define OVERSAMPLE 8
+#ifdef __EMSCRIPTEN__
+/* In the browser the callback runs on the main thread between game slices
+ * (platform.c), so it needs larger buffers and more delay. */
+#define BUFFER_FRAMES 2048
+#define LATENCY_NS 100000000ULL
+#define RESYNC_NS 250000000ULL
+#else
+#define BUFFER_FRAMES 512
 #define LATENCY_NS 40000000ULL      /* replay this far behind real time */
 #define RESYNC_NS 150000000ULL      /* larger drift: jump to real time */
+#endif
 #define RING_SIZE (1u << 16)
 #define VOLUME 0.25f
 #define DC_BLOCK 0.995f

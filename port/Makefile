@@ -3,6 +3,8 @@
 # Builds an x86_64 binary: on macOS it runs under Rosetta 2 on Apple Silicon,
 # on Linux it needs an x86_64 host and the system SDL2 (pkg-config sdl2),
 # on Windows SDL2.dll next to saboteur2.exe.
+# The web build (make web, in Docker) translates the listing to C instead
+# (tools/asm2c.py) and compiles it to WebAssembly with Emscripten.
 
 BUILD    := build
 LISTING  := ../re/SAB2.asm
@@ -24,6 +26,12 @@ LDFLAGS  := -L$(SDL_MINGW)/lib -lmingw32 -lSDL2main -lSDL2 -static-libgcc
 # The game is a GUI program (no console window); SDL2main supplies WinMain.
 GUI_LDFLAGS := -mwindows
 EXE_SUFFIX  := .exe
+
+else ifeq ($(TARGET_OS),Web)
+
+CC       := emcc
+CFLAGS   := -std=c11 -O2 -Wall -Wextra -Isrc -sUSE_SDL=2
+WEB_LDFLAGS := -O2 -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH -sENVIRONMENT=web
 
 else ifeq ($(TARGET_OS),Linux)
 
@@ -50,7 +58,9 @@ GAME_OBJS := $(BUILD)/bios.o $(BUILD)/font8x8.o $(BUILD)/speaker.o $(BUILD)/game
 TARGET    := $(BUILD)/saboteur2$(EXE_SUFFIX)
 CHECK     := $(BUILD)/check_text
 
-ifeq ($(TARGET_OS),Windows)
+ifeq ($(TARGET_OS),Web)
+all: $(BUILD)/index.html
+else ifeq ($(TARGET_OS),Windows)
 all: $(TARGET) $(BUILD)/SDL2.dll
 
 $(BUILD)/SDL2.dll: $(SDL_MINGW)/bin/SDL2.dll | $(BUILD)
@@ -78,6 +88,23 @@ $(BUILD)/data.o: src/data.asm src/runtime.inc $(EXE) Makefile | $(BUILD)
 
 $(BUILD)/%.o: src/%.c src/bios.h src/font8x8.h src/speaker.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# Web: the same C sources plus the game translated to C; the page is
+# index.html with index.js and index.wasm next to it. The translation holds
+# the data segment, with the version shown in the menu.
+WEB_OBJS := $(BUILD)/platform.o $(BUILD)/bios.o $(BUILD)/font8x8.o $(BUILD)/speaker.o \
+            $(BUILD)/runtime.o $(BUILD)/sab2_code_c.o
+
+$(BUILD)/index.html: $(WEB_OBJS) src/web/shell.html
+	$(CC) $(WEB_OBJS) $(WEB_LDFLAGS) --shell-file src/web/shell.html -o $@
+
+$(BUILD)/sab2_code.c: $(LISTING) $(EXE) tools/asm2c.py tools/asm2nasm.py Makefile | $(BUILD)
+	$(PYTHON) tools/asm2c.py $(LISTING) $(EXE) $(VER) $@
+
+$(BUILD)/sab2_code_c.o: $(BUILD)/sab2_code.c src/runtime.h src/bios.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/runtime.o: src/runtime.h
 
 # The version is shown in the window title; rebuild when VER changes.
 $(BUILD)/platform.o: CFLAGS += -DSAB2_VERSION='"$(VER)"'
@@ -157,6 +184,22 @@ windows-image:
 windows: windows-image
 	docker run --rm -v "$(abspath ..)":/src -w /src/port $(WINDOWS_IMAGE) make TARGET_OS=Windows BUILD=build/windows all
 
+# Web (WebAssembly) build with the official Emscripten image; the -arm64
+# variant runs natively on Apple Silicon. Building the image compiles a
+# program with the same flags once, so SDL2 and the system libraries are in
+# its cache. Result: build/web/index.html, .js and .wasm; serve the
+# directory over HTTP (e.g. python3 -m http.server -d build/web).
+EMSDK_VERSION := 4.0.10
+EMSDK_TAG     := $(EMSDK_VERSION)$(if $(filter arm64 aarch64,$(shell uname -m)),-arm64)
+WEB_IMAGE     := saboteur2-web-build
+
+web-image:
+	printf 'FROM emscripten/emsdk:$(EMSDK_TAG)\nRUN echo "int main(void) { return 0; }" > /tmp/t.c && emcc -O2 -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH -sENVIRONMENT=web /tmp/t.c -o /tmp/t.html && rm -f /tmp/t.*\n' \
+		| docker build -t $(WEB_IMAGE) -
+
+web: web-image
+	docker run --rm -v "$(abspath ..)":/src -w /src/port $(WEB_IMAGE) make TARGET_OS=Web BUILD=build/web all
+
 # SDL2.framework for the macOS archive, built from third_party: only the
 # x86_64 slice (the game is x86_64; arm64 Macs run it under Rosetta 2), re-signed
 # ad hoc as the release is, plus Resources; no Headers. The symlinks are made
@@ -211,4 +254,5 @@ run: $(TARGET)
 clean:
 	@-rm -rf $(BUILD)/
 
-.PHONY: all run check clean linux-image linux linux-check windows-image windows pack pack-framework world
+.PHONY: all run check clean linux-image linux linux-check windows-image windows web-image web pack \
+        pack-framework world

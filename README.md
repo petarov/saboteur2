@@ -15,12 +15,13 @@ If you like this game, make sure to go and check Clive Townsend's [Saboteur 2 re
 |---|---|
 | [![Title screen (Menu)](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr01.png)](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr01.png) | [![In-game screen](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr02.png)](https://media.githubusercontent.com/media/petarov/saboteur2/refs/heads/main/screenshots/scr02.png) |
 
-View a pre-rendered PNG map of the [whole game world](screenshots/world.png).
+The [whole game world](screenshots/world.png) pre-rendered in a PNG file.
 
 ## Platforms and downloads
 
 | Platform | Latest release | Package to choose |
 |---|---|---|
+| [Web](https://petarov.github.io/saboteur2/) | [1.0](https://petarov.github.io/saboteur2/) | Play in your browser |
 | Windows x64 | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `windows-x86_64` ZIP |
 | Linux x64 | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `linux-x86_64` archive |
 | macOS Intel (x64) | [1.0](https://github.com/petarov/saboteur2.exe/releases/latest) | `macos-x86_64` ZIP |
@@ -32,6 +33,7 @@ The macOS build is not signed or notarized: allow it under *Privacy & Security* 
 
 - Use the cursor keys to move and `SPACE` to attack or pick up things
 - `Esc` / `Ctrl-C`: terminates mission and goes back to main menu
+- `Ctrl-N`: turns the sound on/off
  
 ### New (not in the original game):
 

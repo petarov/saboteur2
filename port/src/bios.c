@@ -116,10 +116,64 @@ uint8_t bios_cga_color_select(void)
  * with the virtual clock, so the audio thread replays them at 8088 spacing.
  * After a gap longer than PACE_RESYNC_NS the clock restarts from now. */
 #define PACE_AHEAD_NS 3000000ULL
+#ifdef __EMSCRIPTEN__
+/* The game pauses between slices (below) for a few ms; the clock keeps
+ * going over such gaps. */
+#define PACE_RESYNC_NS 30000000ULL
+#else
 #define PACE_RESYNC_NS 10000000ULL
+#endif
 
 static uint64_t pace_ns;
 static unsigned empty_key_polls;
+
+#ifdef __EMSCRIPTEN__
+/* The web build cannot block: a sleep or a used-up slice (SLICE_NS of host
+ * time) sets game_yield, and the platform calls game_run again after
+ * slice_sleep_ms (or at once). */
+#define SLICE_NS 8000000ULL
+
+static uint64_t slice_start;
+static uint32_t slice_sleep_ms;
+
+void bios_slice_begin(void)
+{
+    slice_start = host_ns();
+    slice_sleep_ms = 0;
+}
+
+bool bios_slice_over(void)
+{
+    return host_ns() - slice_start >= SLICE_NS;
+}
+
+uint32_t bios_slice_sleep_ms(void)
+{
+    return slice_sleep_ms;
+}
+
+static void web_sleep(uint32_t ms)
+{
+    slice_sleep_ms = ms;
+    game_yield = 1;
+}
+
+static void web_check_slice(void)
+{
+    if (bios_slice_over())
+        game_yield = 1;
+}
+#endif
+
+/* Sleeps on the game thread; in the web build, yields for that long. */
+static void game_sleep(uint32_t ms)
+{
+#ifdef __EMSCRIPTEN__
+    web_sleep(ms);
+#else
+    SDL_Delay(ms);
+#endif
+}
 
 uint64_t game_clock_ns(void)
 {
@@ -134,7 +188,7 @@ void cpu_pace(uint32_t ns)
         pace_ns = now;
     pace_ns += ns;
     if (pace_ns > now + PACE_AHEAD_NS)
-        SDL_Delay((Uint32)((pace_ns - now) / 1000000ULL));
+        game_sleep((uint32_t)((pace_ns - now) / 1000000ULL));
     empty_key_polls = 0;
 }
 
@@ -144,7 +198,8 @@ void cpu_pace(uint32_t ns)
  * The game installs its own INT 1Ch handlers (CS:0600 frame counter, CS:2D56
  * music). game.asm calls timer_due at the TIMER_POLL points and runs the
  * installed handler as many times as it returns. With wait set and no tick
- * due it sleeps until the next one. At most MAX_TICKS_PER_POLL are delivered
+ * due it sleeps until the next one (the web build yields until then and
+ * returns 0; the TIMER_POLL point polls again). At most MAX_TICKS_PER_POLL are delivered
  * at once; older ones are dropped (e.g. after a blocking key read), so the
  * game does not race through a burst of frames. */
 #define MAX_TICKS_PER_POLL 2
@@ -166,9 +221,14 @@ uint32_t timer_due(uint32_t wait)
     if (due <= delivered && wait) {
         uint64_t next = tick_start_ns(delivered + 1);
         uint64_t now = host_ns();
+#ifdef __EMSCRIPTEN__
+        web_sleep(next > now ? (uint32_t)((next - now + 999999ULL) / 1000000ULL) : 0);
+        return 0;
+#else
         if (next > now)
             SDL_Delay((Uint32)((next - now + 999999ULL) / 1000000ULL));
         due = delivered + 1;
+#endif
     }
     if (due <= delivered)
         return 0;
@@ -316,7 +376,9 @@ static void key_drop(void)
 /* The game waits for keys by polling AH=01h in a loop (wait_key, CS:05BB).
  * After IDLE_AFTER_POLLS empty polls with no timer tick and no paced code in
  * between, each further empty poll sleeps 1 ms. The game loop polls once per
- * frame and the music player once per note, so neither is slowed down. */
+ * frame and the music player once per note, so neither is slowed down.
+ * In the web build a read with no key waiting yields and returns
+ * BIOS_INT16_RETRY, so the INT runs again after the yield. */
 #define IDLE_AFTER_POLLS 3
 #define KEY_WAIT_MS 5
 
@@ -325,19 +387,29 @@ uint32_t bios_int16(void)
     uint16_t key;
     switch (cpu.ax >> 8) {
     case 0x00:  /* read key, waiting for one */
+#ifdef __EMSCRIPTEN__
+        if (!key_peek(&key)) {
+            web_sleep(KEY_WAIT_MS);
+            return BIOS_INT16_RETRY;
+        }
+#else
         while (!key_peek(&key))
             SDL_Delay(KEY_WAIT_MS);
+#endif
         key_drop();
         cpu.ax = key;
         return 0;
     case 0x01:  /* key waiting? ZF = 1 if not */
+#ifdef __EMSCRIPTEN__
+        web_check_slice();
+#endif
         if (key_peek(&key)) {
             cpu.ax = key;
             empty_key_polls = 0;
             return 0;
         }
         if (++empty_key_polls >= IDLE_AFTER_POLLS)
-            SDL_Delay(1);
+            game_sleep(1);
         return 1;
     default:
         log_once(0x1600 | (cpu.ax >> 8), "INT 16h: unsupported function");
@@ -519,6 +591,9 @@ void bios_int21(void)
  * off and drives the speaker from software). */
 uint32_t io_in(void)
 {
+#ifdef __EMSCRIPTEN__
+    web_check_slice();
+#endif
     if (cpu.port == 0x61)
         return port61;
     log_once(cpu.port, "IN from unsupported port");
@@ -527,6 +602,9 @@ uint32_t io_in(void)
 
 void io_out(void)
 {
+#ifdef __EMSCRIPTEN__
+    web_check_slice();
+#endif
     if (cpu.port == 0x61) {
         port61 = cpu.ax & 0xFF;
         speaker_set(port61, 0);

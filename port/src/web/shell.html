@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saboteur II</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  /* 320x200 at 8:5, as large as fits; SDL scales the picture inside. */
+  #canvas {
+    display: block;
+    width: min(100vw, 160vh) !important;
+    height: min(62.5vw, 100vh) !important;
+    outline: none;
+  }
+  :fullscreen #canvas { cursor: none; }
+  #hint {
+    position: fixed; left: 0; right: 0; bottom: 8px; text-align: center;
+    color: #aaa; font: 14px/1.4 monospace; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="-1"></canvas>
+<div id="hint">Loading...</div>
+<script>
+  var hint = document.getElementById('hint');
+  var Module = {
+    canvas: document.getElementById('canvas'),
+    print: function (t) { console.log(t); },
+    printErr: function (t) { console.error(t); },
+    onRuntimeInitialized: function () {
+      hint.textContent = 'Press a key or click to start the sound.';
+    },
+  };
+  /* Browsers start audio only after a user gesture: resume SDL's audio
+   * context on the first key press or click. */
+  function startAudio() {
+    var ctx = Module.SDL2 && Module.SDL2.audioContext;
+    if (ctx && ctx.state === 'suspended')
+      ctx.resume();
+    hint.style.display = 'none';
+  }
+  /* The game's and the port's Ctrl keys (Ctrl-I, -J, -K, -O, -P, ...) are
+   * browser shortcuts too: keep the browser from acting on them. Some
+   * (Ctrl-W, Ctrl-T, Ctrl-N in Chrome) cannot be overridden. */
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey && /^Key[A-Z]$/.test(e.code))
+      e.preventDefault();
+  }, true);
+  document.addEventListener('keydown', startAudio);
+  document.addEventListener('mousedown', startAudio);
+  document.addEventListener('touchstart', startAudio);
+  window.addEventListener('focus', function () { Module.canvas.focus(); });
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>
