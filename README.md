@@ -21,7 +21,7 @@ The [whole game world](screenshots/world.png) pre-rendered in a PNG file.
 
 | Platform | Latest release | Package to choose |
 |---|---|---|
-| [Web](https://petarov.github.io/saboteur2/) | [1.1](https://petarov.github.io/saboteur2/) | Play in your browser |
+| [Web](https://petarov.github.io/saboteur2/) | [1.1](https://github.com/petarov/saboteur2/releases/latest) | Play in your browser |
 | Windows x64 | [1.1](https://github.com/petarov/saboteur2/releases/latest) | `windows-x86_64` ZIP |
 | Linux x64 | [1.1](https://github.com/petarov/saboteur2/releases/latest) | `linux-x86_64` archive |
 | macOS Intel (x64) | [1.1](https://github.com/petarov/saboteur2/releases/latest) | `macos-x86_64` ZIP |
@@ -44,6 +44,22 @@ The macOS build is not signed or notarized: allow it under *Privacy & Security* 
 - `Ctrl-J`: (cheat) adds 100 to the timer, up to 999
 - `Ctrl-K`: toggles responsive controls (on by default): the cursor keys and `SPACE` act while held and stop on release, and every `SPACE` press is a new attack. Off restores the original (classic) feel.
 - `Alt-Enter` / `F11` (macOS: `Cmd-Enter` / `Cmd-F11`): toggles fullscreen. The game starts in fullscreen by default. Use `--window` on the command line to start in a window.
+
+### Mission codes
+
+There are 9 missions, named after the nine [Kuji-in](https://en.wikipedia.org/wiki/Kuji-in) ranks. Finishing a mission shows the code for the next one. To start a later mission, press `M` in the main menu and type its code.
+
+| Code | Level | Name | Timer | Objectives |
+|---|---|---|---|---|
+| (`none`) | 1 | RIN - Strength of mind and body | 999 | Kill enemy guards, escape from building via tunnels, smash through fence on motorbike |
+| `JONIN` | 2 | KYO - Direction of energy | 901 | Kill enemy guards, escape from building via tunnels |
+| `KIME` | 3 | TOH - Harmony with the universe | 801 | Kill enemy guards, collect 2 pieces of paper tape, escape from building via tunnels, smash through fence on motorbike |
+| `KUJI KIRI` | 4 | SHA - Healing of self and others | 751 | Kill enemy guards, collect 5 pieces of paper tape, disable electrified fence, escape from building via tunnels, smash through fence on motorbike |
+| `SAIMENJITSU` | 5 | KAI - Premonition of danger | 701 | Kill enemy guards, collect 7 pieces of paper tape, disable electrified fence, escape from building via tunnels, smash through fence on motorbike |
+| `GENIN` | 6 | JIN - Knowing the thoughts of others | 651 | Kill enemy guards, collect 9 pieces of paper tape, insert tape in missile console, disable electrified fence, escape from building via tunnels, smash through fence on motorbike |
+| `MI LU KATA` | 7 | RETSU - Mastery of time and space | 601 | Kill enemy guards, collect 11 pieces of paper tape, insert tape in missile console, escape from building via tunnels |
+| `DIM MAK` | 8 | ZAI - Control of nature's elements | 551 | Kill enemy guards, collect 14 pieces of paper tape, insert tape in missile console, escape from building via tunnels, smash through fence on motorbike |
+| `SATORI` | 9 | ZEN - Enlightenment | 999 | Kill enemy guards, collect 14 pieces of paper tape, insert tape in missile console, disable electrified fence, escape from building via tunnels, smash through fence on motorbike |
 
 ## Building
 
