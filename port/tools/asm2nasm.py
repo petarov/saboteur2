@@ -111,12 +111,19 @@ MARKERS = {
     0x21D3: ['cmp byte [cheat_onehit], 0', 'je .no_onehit',
              'mov byte [r12 + 0x6F98], 1', '.no_onehit:'],
     # Menu, after its text is printed: add the port's version (data.asm) at the
-    # top left of the panel. Text position and colour are kept as they were.
+    # top left of the panel and the C SEE CHEATS item. Text position and
+    # colour are kept as they were.
     0x2742: ['push rsi', 'movzx r14d, word [r12 + 0x1BA2]', 'push r14',
              'movzx r14d, byte [r12 + 0x1BC4]', 'push r14',
              'mov si, VERSION_TEXT', 'call L_04B7',
              'pop r14', 'mov [r12 + 0x1BC4], r14b',
              'pop r14', 'mov [r12 + 0x1BA2], r14w', 'pop rsi'],
+    # Menu, after the key is read (AL, upper case): C shows the port's cheat
+    # keys (data.asm) as CS:2897 shows the high scores: clear the panel
+    # (CS:2A93) and print, then CS:28CC waits for a key or 100 frames and goes
+    # back to the menu.
+    0x275A: ['cmp al, 0x43', 'jne .not_cheats', 'call L_2A93',
+             'mov si, CHEATS_TEXT', 'call L_04B7', 'jmp L_28CC', '.not_cheats:'],
     # Tone loop of sound_seq_play: [78BCh] is cleared only by the INT 1Ch
     # handler, so run it here when a tick is due (no sleep; the loop is paced).
     0x2D0B: ['TIMER_POLL timer_poll_run'],
